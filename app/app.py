@@ -33,6 +33,11 @@ class ModelParams:
         self.n_hidden = n_hidden # Number  of neurons
         self.n_classes = n_classes # Number of classes of prediction
 
+        # Compile Parameters
+        self.loss = kwargs.get("loss", "categorical_crossentropy") 
+        self.optimizer = kwargs.get("optimizer", "SGD")
+        self.metrics = kwargs.get("metrics", ["accuracy"])
+
         # Training Parameters for basic MNIST
         self.learning_rate = kwargs.get("learning_rate", 0.1)
         self.training_epochs = kwargs.get("training_epochs", 2)
@@ -40,17 +45,19 @@ class ModelParams:
 
 def build_model(params):
 
-    model = Sequential()
+    layers = []
 
-    initial = True
-    for layer in params.n_hidden:
-        if initial:
-            model.add(Dense(layer["neuron_count"], input_shape=(params.n_input,), name=layer["name"]))
-            model.add(Activation(layer['activation_type'], name=(layer["activation_type"]+"_"+layer["name"])))
-            initial = False
-        else:
-            model.add(Dense(layer["neuron_count"], name=layer["name"]))
-            model.add(Activation(layer['activation_type'], name=(layer["activation_type"]+"_"+layer["name"])))
+    for g in params.n_hidden:
+        if g["type"] == "dense":
+            layers.append(tf.keras.layers.Dense(g["neuron_count"], g["activation_type"]))
+        elif g["type"] == "dropout":
+            layers.append(tf.keras.layers.Dropout(g["dropout_rate"]))
+        elif g["type"] == "flatten":
+            pass
+    model = tf.keras.models.Sequential(layers)
+    model.compile(loss=params.loss,
+              optimizer=params.optimizer,
+              metrics=params.metrics)
     model.save("model/{}.h5".format(params.name))
     return model
 
