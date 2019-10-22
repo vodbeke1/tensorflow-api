@@ -10,62 +10,15 @@ from flask_env import MetaFlaskEnv
 import keras
 from keras.models import Model, Sequential
 
-from keras.optimizers import Adam
-
 import tensorflow as tf
 
-
-"""
------------------ Configuration -----------------
-***The configuration format
-
-{
-    "name":"test_model_v1",
-    "type": "sequential",
-    "loss": "categorical_crossentropy",
-    "optimizer": "SGD",
-    "metrics:["accuracy"],
-    "learning_rate":0.1,
-    "training_epochs":2,
-    "batch_size":100,
-    "layers":[
-        {
-            "type":"dense",
-            "neuron_count":1000,
-            "activation_type":"relu"
-        },
-        {
-            "type":"dense",
-            "neuron_count":700,
-            "activation_type":"relu"
-        },
-        {
-            "type":"dense",
-            "neuron_count":384,
-            "activation_type":"relu"
-        },
-        {
-            "type":"dense",
-            "neuron_count":100,
-            "activation_type":"relu"
-        },
-        {
-            "type":"dense",
-            "neuron_count":10,
-            "activation_type":"softmax"
-        }
-    ],
-    "n_classes":10,
-    "verbose":1
-}
-
-"""
 def load_params():
     if os.path.isfile("config/config.json") == False:
         return None
     with open("config/config.json", "r") as fp:
         params = json.load(fp)
     return params
+
 
 def load_data():
     n_classes = 10
@@ -80,6 +33,7 @@ def load_data():
 
 
     return x_train, y_train, x_test, y_test
+
 
 class ModelParams:
     def __init__(self, name, n_hidden, n_classes, n_input=None, **kwargs):
@@ -102,6 +56,7 @@ class ModelParams:
         self.batch_size = kwargs.get("batch_size", 100)
         self.verbose = kwargs.get("verbose", 1)
 
+
 def build_model(params):
 
     layers = []
@@ -123,9 +78,6 @@ def build_model(params):
     model.save("model/{}.h5".format(params.name))
     return model
 
-def check_config(config):
-    pass
-
 
 class Configuration(MetaFlaskEnv):
     DEBUG = True
@@ -135,9 +87,11 @@ class Configuration(MetaFlaskEnv):
 application = Flask(__name__)
 application.config.from_object(Configuration)
 
+
 @application.route("/score-object", methods=["POST"])
 def score_object():
     pass
+
 
 @application.route("/configure-model", methods=["POST"])
 def configure_model():
