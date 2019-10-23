@@ -31,7 +31,6 @@ def load_data():
     y_train = keras.utils.to_categorical(train.iloc[:,0].values, n_classes)
     y_test = keras.utils.to_categorical(test.iloc[:,0].values, n_classes)
 
-
     return x_train, y_train, x_test, y_test
 
 
@@ -73,8 +72,9 @@ def build_model(params):
 
     model = tf.keras.models.Sequential(layers)
     model.compile(loss=params.loss,
-              optimizer=params.optimizer,
-              metrics=params.metrics)
+                  optimizer=params.optimizer,
+                  metrics=params.metrics)
+
     model.save("model/{}.h5".format(params.name))
     return model
 
@@ -96,6 +96,13 @@ def score_object():
 @application.route("/configure-model", methods=["POST"])
 def configure_model():
     config = request.json
+    custom = config.get("custom") 
+
+    if type(custom) == str:
+        with open("config/config-custom-{}.json".format(custom), "w") as fp:
+            json.dump(config, fp)
+        return make_response("Custom parameters set successfully - reference:{}".format(custom), 200) 
+
     with open("config/config.json", "w") as fp:
         json.dump(config, fp)
 
@@ -111,15 +118,23 @@ def train_model():
     if params == None:
         return make_response("No model parameters found", 201)
 
-    params = ModelParams(name=params["name"], n_classes=params["n_classes"], n_hidden=params["layers"])
+    params = ModelParams(name=params["name"], 
+                        n_classes=params["n_classes"], 
+                        n_hidden=params["layers"], 
+                        training_epochs=params["training_epochs"],
+                        loss=params["loss"],
+                        optimizer=params["optimizer"],
+                        metrics=params["metrics"])
+    
     model = build_model(params)
+    
     history = model.fit(x_train, y_train,
                     batch_size=params.batch_size,
                     epochs=params.training_epochs,
                     verbose=params.verbose,
                     validation_data=(x_test,y_test))
     model.summary()
-    #print(model.evaluate(x_test, y_test))
+    print(model.evaluate(x_test, y_test))
     model.save("model/{}.h5".format(params.name))
 
     return make_response("Model trained successfully", 200)

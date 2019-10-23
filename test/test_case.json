@@ -5,17 +5,17 @@
     "optimizer": "SGD",
     "metrics":["accuracy"],
     "learning_rate":0.1,
-    "training_epochs":2,
+    "training_epochs":20,
     "batch_size":100,
     "layers":[
         {
             "type":"dense",
-            "neuron_count":1000,
+            "neuron_count":700,
             "activation_type":"relu"
         },
         {
             "type":"dense",
-            "neuron_count":700,
+            "neuron_count":600,
             "activation_type":"relu"
         },
         {
