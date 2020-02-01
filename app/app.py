@@ -5,7 +5,8 @@ import json
 from flask import Flask
 from flask import request
 from flask import make_response
-from flask_env import MetaFlaskEnv
+from env import Config
+
 
 import keras
 from keras.models import Model, Sequential
@@ -79,13 +80,11 @@ def build_model(params):
     return model
 
 
-class Configuration(MetaFlaskEnv):
-    DEBUG = True
-    ENV = "development"
+
 
 
 application = Flask(__name__)
-application.config.from_object(Configuration)
+application.config.from_object(Config)
 
 
 @application.route("/score-object", methods=["POST"])
@@ -96,7 +95,7 @@ def score_object():
 @application.route("/configure-model", methods=["POST"])
 def configure_model():
     config = request.json
-    custom = config.get("custom") 
+    custom = config.get("custom_config") 
 
     if type(custom) == str:
         with open("config/config-custom-{}.json".format(custom), "w") as fp:
@@ -128,11 +127,12 @@ def train_model():
     
     model = build_model(params)
     
-    history = model.fit(x_train, y_train,
-                    batch_size=params.batch_size,
-                    epochs=params.training_epochs,
-                    verbose=params.verbose,
-                    validation_data=(x_test,y_test))
+    model.fit(x_train, y_train,
+        batch_size=params.batch_size,
+        epochs=params.training_epochs,
+        verbose=params.verbose,
+        validation_data=(x_test,y_test))
+
     model.summary()
     print(model.evaluate(x_test, y_test))
     model.save("model/{}.h5".format(params.name))
